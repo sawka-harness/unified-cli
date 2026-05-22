@@ -13,7 +13,10 @@ success() { printf '  \033[32m✓\033[0m %s\n' "$*"; }
 warn()    { printf '  \033[33m!\033[0m %s\n' "$*"; }
 error()   { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
-is_interactive() { { true </dev/tty; } 2>/dev/null; }
+is_interactive() {
+    [ -n "${HARNESS_NONINTERACTIVE:-}" ] && return 1
+    { true </dev/tty; } 2>/dev/null
+}
 
 confirm() {
     local prompt="$1"

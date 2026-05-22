@@ -16,6 +16,21 @@ The installer will:
 - Install to `~/.local/bin` (override with `HARNESS_INSTALL_DIR`)
 - Optionally add `~/.local/bin` to your `PATH` and enable shell completions
 
+Prefer to install manually? Download a binary directly from [GitHub Releases](https://github.com/sawka-harness/unified-cli/releases) and place it on your `PATH`.
+
+### Installer environment variables
+
+| Variable | Description |
+| --- | --- |
+| `HARNESS_INSTALL_DIR` | Override the install directory (default: `~/.local/bin`) |
+| `HARNESS_NONINTERACTIVE` | Set to `1` to skip all prompts (useful for CI, Docker, provisioning scripts) |
+| `HARNESS_NO_VERIFY` | Set to `1` to skip checksum verification |
+
+```sh
+# example: non-interactive install to a custom directory
+HARNESS_NONINTERACTIVE=1 HARNESS_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | bash
+```
+
 ---
 
 ## Shell Completions
