@@ -33,6 +33,32 @@ When passing flags via a pipe, use `sh -s --` — `-s` tells sh to read from std
 curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | sh -s -- --non-interactive --install-dir /usr/local/bin
 ```
 
+### Upgrading
+
+Once installed, upgrade to the latest version with:
+
+```sh
+harness install cli
+```
+
+Or install a specific version:
+
+```sh
+harness install cli v1.2.3
+```
+
+Check if a newer version is available without installing:
+
+```sh
+harness install cli --check
+```
+
+| Flag | Description |
+| --- | --- |
+| `--install-dir <path>` | Override the install directory (default: `~/.local/bin`) |
+| `--force` | Reinstall even if the current version is already up to date |
+| `--check` | Print the resolved version without installing; exits 1 if not found |
+
 ---
 
 ## Shell Completions
