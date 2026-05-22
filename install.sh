@@ -13,7 +13,7 @@ success() { printf '  \033[32m✓\033[0m %s\n' "$*"; }
 warn()    { printf '  \033[33m!\033[0m %s\n' "$*"; }
 error()   { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
-is_interactive() { [ -t 0 ] && [ -t 1 ]; }
+is_interactive() { { true </dev/tty; } 2>/dev/null; }
 
 confirm() {
     local prompt="$1"
@@ -77,9 +77,10 @@ sha256_file() {
 
 download_binary() {
     local version="$1" platform="$2" dest="$3"
-    local base="${BINARY_NAME}_${version}_${platform}"
+    local ver="${version#v}"
+    local base="${BINARY_NAME}_${ver}_${platform}"
     local url="https://github.com/${REPO}/releases/download/${version}/${base}.tar.gz"
-    local checksum_url="https://github.com/${REPO}/releases/download/${version}/${BINARY_NAME}_${version}_checksums.txt"
+    local checksum_url="https://github.com/${REPO}/releases/download/${version}/${BINARY_NAME}_${ver}_checksums.txt"
     local tmp
     tmp="$(mktemp -d)"
     trap 'rm -rf "$tmp"' EXIT

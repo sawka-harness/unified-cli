@@ -48,20 +48,15 @@ All commands resolve auth from (in order): `--profile` flag → `HARNESS_API_KEY
 harness auth login
 ```
 
-Without arguments, launches an interactive TUI (requires a TTY; errors otherwise). Or pass flags directly (useful for scripting):
+Launches an interactive TUI to set up a profile (requires a TTY). Use `--profile <name>` to log into multiple accounts:
 
 ```sh
-harness auth login --api-token <PAT>
+harness auth login --profile staging
 ```
 
-- `--api-url` defaults to `https://app.harness.io`
-- Account ID is extracted from the PAT automatically; pass `--account` only to override
-- `--org` and `--project` set defaults for the profile (optional)
-- `--profile <name>` saves as a named profile; omit for `default`
-- `--overwrite` / `--no-overwrite` control behavior when the profile already exists
-- `--no-validate` skips the token validation call
-
 Profile config is saved to `~/.harness/config.yaml`; the token is stored in `~/.harness/credentials`.
+
+For non-interactive use (CI, scripting), prefer the `HARNESS_API_KEY` env var instead of logging in. If you do need to create a profile non-interactively, see `harness auth login --help`.
 
 ### Change default org/project
 
