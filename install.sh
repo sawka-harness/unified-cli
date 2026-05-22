@@ -173,16 +173,12 @@ main() {
     download_binary "$version" "$platform" "$INSTALL_DIR"
     success "Installed $BINARY_NAME $version to $INSTALL_DIR/$BINARY_NAME"
 
-    # check if binary is reachable
-    if ! command -v "$BINARY_NAME" >/dev/null 2>&1; then
-        warn "$INSTALL_DIR is not on your PATH"
-    fi
+    local patched_rc=""
 
     # shell config — only if interactive and user didn't override install dir
     if is_interactive && [ -z "$USER_OVERRIDE" ]; then
-        local rc
+        local rc rc_name
         rc="$(detect_shell_rc)"
-        local rc_name
         rc_name="$(basename "$rc")"
 
         if already_patched "$rc"; then
@@ -196,8 +192,8 @@ main() {
 
             if confirm "Update ~/$rc_name"; then
                 patch_shell_rc "$rc"
+                patched_rc="$rc_name"
                 success "Updated ~/$rc_name"
-                info "Run 'source ~/$rc_name' or open a new terminal to apply"
             else
                 printf '\n'
                 info "To set up manually, add to ~/$rc_name:"
@@ -207,7 +203,13 @@ main() {
     fi
 
     printf '\n'
-    success "Done! Run 'harness version' to verify."
+    if command -v "$BINARY_NAME" >/dev/null 2>&1; then
+        success "Done! Run 'harness version' to verify."
+    elif [ -n "$patched_rc" ]; then
+        success "Done! Run 'source ~/$patched_rc' then 'harness version' to verify."
+    else
+        success "Done! Add $INSTALL_DIR to your PATH then run 'harness version' to verify."
+    fi
 }
 
 main "$@"

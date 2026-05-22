@@ -26,6 +26,8 @@ Prefer to install manually? Download a binary directly from [GitHub Releases](ht
 | `--non-interactive` | Skip all prompts (useful for CI, Docker, provisioning scripts) |
 | `--no-verify` | Skip checksum verification |
 
+When passing flags via a pipe, use `bash -s --` — `-s` tells bash to read from stdin, and `--` separates bash's own options from the installer flags passed as `$@`.
+
 ```sh
 # example: non-interactive install to a custom directory
 curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | bash -s -- --non-interactive --install-dir /usr/local/bin
