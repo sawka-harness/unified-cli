@@ -86,8 +86,7 @@ download_binary() {
     local checksum_url="https://github.com/${REPO}/releases/download/${version}/${BINARY_NAME}_${ver}_checksums.txt"
     local tmp
     tmp="$(mktemp -d)"
-    trap 'rm -rf "$tmp"' EXIT
-
+    [ -z "$tmp" ] && error "Failed to create temporary directory"
     info "Downloading $BINARY_NAME $version ($platform)..."
     curl -fsSL "$url" -o "$tmp/harness.tar.gz"
 
@@ -106,6 +105,7 @@ download_binary() {
     tar -xzf "$tmp/harness.tar.gz" -C "$tmp"
     mv "$tmp/$BINARY_NAME" "$dest/$BINARY_NAME"
     chmod +x "$dest/$BINARY_NAME"
+    rm -rf "$tmp"
 }
 
 # ── shell config ───────────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ shell_config_block() {
         printf 'export PATH="$HOME/.local/bin:$PATH"\n'
         printf 'source <(harness completion %s)\n' "$shell_name"
     fi
-    printf '# </HarnessCLI>\n'
+    printf '# </HarnessCLI>\n\n'
 }
 
 patch_shell_rc() {
@@ -187,7 +187,7 @@ main() {
     fi
 
     printf '\n'
-    success "Done! Run 'harness version' to verify.\n"
+    success "Done! Run 'harness version' to verify."
 }
 
 main
