@@ -4,7 +4,9 @@ set -euo pipefail
 REPO="sawka-harness/unified-cli"
 BINARY_NAME="harness"
 INSTALL_DIR="${HARNESS_INSTALL_DIR:-$HOME/.local/bin}"
-USER_OVERRIDE="${HARNESS_INSTALL_DIR:+yes}"  # set if user provided override
+USER_OVERRIDE="${HARNESS_INSTALL_DIR:+yes}"
+NONINTERACTIVE="${HARNESS_NONINTERACTIVE:-}"
+NO_VERIFY="${HARNESS_NO_VERIFY:-}"
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -14,7 +16,7 @@ warn()    { printf '  \033[33m!\033[0m %s\n' "$*"; }
 error()   { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
 is_interactive() {
-    [ -n "${HARNESS_NONINTERACTIVE:-}" ] && return 1
+    [ -n "$NONINTERACTIVE" ] && return 1
     { true </dev/tty; } 2>/dev/null
 }
 
@@ -27,6 +29,20 @@ confirm() {
         [nN]*) return 1 ;;
         *)     return 0 ;;
     esac
+}
+
+# ── argument parsing ───────────────────────────────────────────────────────────
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --non-interactive) NONINTERACTIVE=1    ; shift ;;
+            --no-verify)       NO_VERIFY=1         ; shift ;;
+            --install-dir)     INSTALL_DIR="$2" ; USER_OVERRIDE=yes ; shift 2 ;;
+            --install-dir=*)   INSTALL_DIR="${1#*=}" ; USER_OVERRIDE=yes ; shift ;;
+            *) error "Unknown option: $1" ;;
+        esac
+    done
 }
 
 # ── platform detection ─────────────────────────────────────────────────────────
@@ -74,7 +90,7 @@ sha256_file() {
     elif command -v shasum >/dev/null 2>&1; then
         shasum -a 256 "$1" | cut -d' ' -f1
     else
-        error "No sha256sum or shasum command found — cannot verify download. Set HARNESS_NO_VERIFY=1 to skip verification."
+        error "No sha256sum or shasum command found — cannot verify download. Pass --no-verify to skip verification."
     fi
 }
 
@@ -87,11 +103,12 @@ download_binary() {
     local tmp
     tmp="$(mktemp -d)"
     [ -z "$tmp" ] && error "Failed to create temporary directory"
+
     info "Downloading $BINARY_NAME $version ($platform)..."
     curl -fsSL "$url" -o "$tmp/harness.tar.gz"
 
-    if [ -n "${HARNESS_NO_VERIFY:-}" ]; then
-        warn "Skipping checksum verification (HARNESS_NO_VERIFY set)"
+    if [ -n "$NO_VERIFY" ]; then
+        warn "Skipping checksum verification (--no-verify)"
     else
         info "Verifying checksum..."
         curl -fsSL "$checksum_url" -o "$tmp/checksums.txt"
@@ -121,13 +138,13 @@ shell_config_block() {
         printf 'export PATH="$HOME/.local/bin:$PATH"\n'
         printf 'source <(harness completion %s)\n' "$shell_name"
     fi
-    printf '# </HarnessCLI>\n\n'
+    printf '# </HarnessCLI>\n'
 }
 
 patch_shell_rc() {
     local rc="$1"
     touch "$rc"
-    printf '\n%s\n' "$(shell_config_block)" >> "$rc"
+    printf '\n%s\n\n' "$(shell_config_block)" >> "$rc"
 }
 
 already_patched() {
@@ -138,6 +155,8 @@ already_patched() {
 # ── main ───────────────────────────────────────────────────────────────────────
 
 main() {
+    parse_args "$@"
+
     printf '\n  \033[1mHarness CLI installer\033[0m\n\n'
 
     local platform version
@@ -148,6 +167,7 @@ main() {
 
     # create install dir if needed
     mkdir -p "$INSTALL_DIR"
+    [ -d "$INSTALL_DIR" ] || error "$INSTALL_DIR is not a directory"
 
     # install binary
     download_binary "$version" "$platform" "$INSTALL_DIR"
@@ -190,4 +210,4 @@ main() {
     success "Done! Run 'harness version' to verify."
 }
 
-main
+main "$@"

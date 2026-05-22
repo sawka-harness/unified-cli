@@ -13,22 +13,22 @@ curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/inst
 The installer will:
 
 - Download the latest binary for your platform (macOS and Linux, amd64/arm64)
-- Install to `~/.local/bin` (override with `HARNESS_INSTALL_DIR`)
+- Install to `~/.local/bin` (override with `--install-dir`)
 - Optionally add `~/.local/bin` to your `PATH` and enable shell completions
 
 Prefer to install manually? Download a binary directly from [GitHub Releases](https://github.com/sawka-harness/unified-cli/releases) and place it on your `PATH`.
 
-### Installer environment variables
+### Installer flags
 
-| Variable | Description |
+| Flag | Description |
 | --- | --- |
-| `HARNESS_INSTALL_DIR` | Override the install directory (default: `~/.local/bin`) |
-| `HARNESS_NONINTERACTIVE` | Set to `1` to skip all prompts (useful for CI, Docker, provisioning scripts) |
-| `HARNESS_NO_VERIFY` | Set to `1` to skip checksum verification |
+| `--install-dir <path>` | Override the install directory (default: `~/.local/bin`) |
+| `--non-interactive` | Skip all prompts (useful for CI, Docker, provisioning scripts) |
+| `--no-verify` | Skip checksum verification |
 
 ```sh
 # example: non-interactive install to a custom directory
-HARNESS_NONINTERACTIVE=1 HARNESS_INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | bash -s -- --non-interactive --install-dir /usr/local/bin
 ```
 
 ---
