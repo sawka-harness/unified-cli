@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 REPO="sawka-harness/unified-cli"
 BINARY_NAME="harness"
@@ -34,7 +34,7 @@ confirm() {
 # ── argument parsing ───────────────────────────────────────────────────────────
 
 parse_args() {
-    while [[ $# -gt 0 ]]; do
+    while [ $# -gt 0 ]; do
         case "$1" in
             --non-interactive) NONINTERACTIVE=1    ; shift ;;
             --no-verify)       NO_VERIFY=1         ; shift ;;
@@ -95,7 +95,9 @@ sha256_file() {
 }
 
 download_binary() {
-    local version="$1" platform="$2" dest="$3"
+    local version="$1"
+    local platform="$2"
+    local dest="$3"
     local ver="${version#v}"
     local base="${BINARY_NAME}_${ver}_${platform}"
     local url="https://github.com/${REPO}/releases/download/${version}/${base}.tar.gz"
@@ -159,7 +161,8 @@ main() {
 
     printf '\n  \033[1mHarness CLI installer\033[0m\n\n'
 
-    local platform version
+    local platform
+    local version
     platform="$(detect_platform)"
     version="$(latest_version)"
 
@@ -177,7 +180,8 @@ main() {
 
     # shell config — only if interactive and user didn't override install dir
     if is_interactive && [ -z "$USER_OVERRIDE" ]; then
-        local rc rc_name
+        local rc
+        local rc_name
         rc="$(detect_shell_rc)"
         rc_name="$(basename "$rc")"
 
