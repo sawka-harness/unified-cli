@@ -20,11 +20,11 @@ Prefer to install manually? Download a binary directly from [GitHub Releases](ht
 
 ### Installer flags
 
-| Flag | Description |
-| --- | --- |
-| `--install-dir <path>` | Override the install directory (default: `~/.local/bin`) |
-| `--non-interactive` | Skip all prompts (useful for CI, Docker, provisioning scripts) |
-| `--no-verify` | Skip checksum verification |
+| Flag                   | Description                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| `--install-dir <path>` | Override the install directory (default: `~/.local/bin`)       |
+| `--non-interactive`    | Skip all prompts (useful for CI, Docker, provisioning scripts) |
+| `--no-verify`          | Skip checksum verification                                     |
 
 When passing flags via a pipe, use `sh -s --` — `-s` tells sh to read from stdin, and `--` separates sh's own options from the installer flags passed as `$@`.
 
@@ -53,11 +53,11 @@ Check if a newer version is available without installing:
 harness install cli --check
 ```
 
-| Flag | Description |
-| --- | --- |
-| `--install-dir <path>` | Override the install directory (default: `~/.local/bin`) |
-| `--force` | Reinstall even if the current version is already up to date |
-| `--check` | Print the resolved version without installing; exits 1 if not found |
+| Flag                   | Description                                                         |
+| ---------------------- | ------------------------------------------------------------------- |
+| `--install-dir <path>` | Override the install directory (default: `~/.local/bin`)            |
+| `--force`              | Reinstall even if the current version is already up to date         |
+| `--check`              | Print the resolved version without installing; exits 1 if not found |
 
 ---
 
@@ -133,29 +133,41 @@ The grammar is `harness <verb> <noun> [identifier] [flags]`. Use `--help` at any
 
 ### Supported commands
 
-`✓` = supported, `P` = supported with server-side paging
+| Symbol | Meaning                                                     |
+| ------ | ----------------------------------------------------------- |
+| `✓`    | Supported                                                   |
+| `P`    | Supports paging (`--limit`, `--offset`, `--all`, `--count`) |
+| `L`    | Supports `--level` flag (account / org / project scope)     |
+| `S`    | Set-fields — create via `--set` / positional args           |
+| `GTP`  | Get-then-put — update via `--set` / `--del`                 |
+| `Y`    | YAML file — outputs or accepts a YAML file via `-f`         |
+
+Symbols combine — `PL` means paged and level-aware.
 
 #### Platform / Access Control
 
 | Noun              | list | get | create | update | delete | execute |
 | ----------------- | ---- | --- | ------ | ------ | ------ | ------- |
-| `organization`    | P    | ✓   |        |        |        |         |
-| `project`         | P    | ✓   | ✓      |        | ✓      |         |
-| `user`            | P    | ✓   |        |        |        |         |
-| `user_group`      | ✓    | ✓   |        |        |        |         |
-| `service_account` | ✓    | ✓   |        |        |        |         |
-| `role`            | ✓    | ✓   |        |        |        |         |
-| `permission`      | ✓    |     |        |        |        |         |
-| `connector`       | ✓    | ✓   |        |        |        |         |
-| `secret`          | ✓    | ✓   |        |        |        |         |
-| `delegate`        | ✓    |     |        |        |        |         |
-| `setting`         | ✓    |     |        |        |        |         |
+| `account`         |      | ✓   |        |        |        |         |
+| `organization`    | P    | ✓   | S      | GTP    | ✓      |         |
+| `project`         | PL   | ✓   | S      | GTP    | ✓      |         |
+| `user`            | PL   | L   |        |        |        |         |
+| `user_group`      | PL   | L   |        |        |        |         |
+| `service_account` | PL   | L   |        |        |        |         |
+| `role`            | PL   | L   |        |        |        |         |
+| `role_assignment` | PL   | L   |        |        |        |         |
+| `resource_group`  | PL   | L   |        |        |        |         |
+| `permission`      | P    | ✓   |        |        |        |         |
+| `connector`       | PL   | L   |        |        |        |         |
+| `secret`          | PL   | L   |        |        |        |         |
+| `delegate`        | PL   | L   |        |        |        |         |
+| `setting`         | PL   | L   |        |        |        |         |
 
 #### Pipelines / CI/CD
 
 | Noun                     | list | get | create | update | delete | execute |
 | ------------------------ | ---- | --- | ------ | ------ | ------ | ------- |
-| `pipeline`               | ✓    | ✓   | ✓      | ✓      | ✓      | ✓       |
+| `pipeline`               | P    | Y   | Y      | Y      | ✓      | ✓       |
 | `pipeline_v1`            | ✓    | ✓   |        |        |        |         |
 | `pipeline_summary`       |      | ✓   |        |        |        |         |
 | `execution`              | P    | ✓   |        |        |        |         |
