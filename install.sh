@@ -220,7 +220,7 @@ main() {
     fi
 
     printf '\n'
-    if command -v "$BINARY_NAME" >/dev/null 2>&1; then
+    if command -v harness >/dev/null 2>&1; then
         success "Done! Run 'harness version' to verify."
     elif [ -n "$patched_rc" ]; then
         success "Done! Run 'source ~/$patched_rc' then 'harness version' to verify."
