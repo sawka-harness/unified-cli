@@ -12,24 +12,31 @@ curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/inst
 
 The installer will:
 
-- Download the latest binary for your platform (macOS and Linux, amd64/arm64)
-- Install to `~/.local/bin` (override with `--install-dir`)
+- Download the latest `harness-bundle` for your platform (macOS and Linux, amd64/arm64)
+- Install both the `harness` and `harness-har` binaries to `~/.local/bin` (override with `--install-dir`)
 - Optionally add `~/.local/bin` to your `PATH` and enable shell completions
 
-Prefer to install manually? Download a binary directly from [GitHub Releases](https://github.com/sawka-harness/unified-cli/releases) and place it on your `PATH`.
+Prefer to install manually? Download a release archive directly from [GitHub Releases](https://github.com/sawka-harness/unified-cli/releases) and place the binaries on your `PATH`.
 
 ### Installer flags
 
 | Flag                   | Description                                                    |
 | ---------------------- | -------------------------------------------------------------- |
 | `--install-dir <path>` | Override the install directory (default: `~/.local/bin`)       |
+| `--core`               | Install only the `harness` binary (skips `harness-har`)        |
 | `--non-interactive`    | Skip all prompts (useful for CI, Docker, provisioning scripts) |
 | `--no-verify`          | Skip checksum verification                                     |
 
 When passing flags via a pipe, use `sh -s --` — `-s` tells sh to read from stdin, and `--` separates sh's own options from the installer flags passed as `$@`.
 
 ```sh
-# example: non-interactive install to a custom directory
+# install bundle (default)
+curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | sh
+
+# install harness only (no harness-har)
+curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | sh -s -- --core
+
+# non-interactive install to a custom directory
 curl -fsSL https://raw.githubusercontent.com/sawka-harness/unified-cli/main/install.sh | sh -s -- --non-interactive --install-dir /usr/local/bin
 ```
 
@@ -144,6 +151,16 @@ The grammar is `harness <verb> <noun> [identifier] [flags]`. Use `--help` at any
 
 Symbols combine — `PL` means paged and level-aware.
 
+#### Discovery
+
+| Command              | Description                                              |
+| -------------------- | -------------------------------------------------------- |
+| `list module`        | Show all available modules                               |
+| `get module <name>`  | Domain model, nouns, and guides for a module             |
+| `list noun`          | Show all available nouns                                 |
+| `get noun <noun>`    | Fields and commands for a specific noun                  |
+| `list noun --matrix` | **All nouns × verbs at a glance** — great starting point |
+
 #### Platform / Access Control
 
 | Noun              | list | get | create | update | delete | execute |
@@ -165,21 +182,28 @@ Symbols combine — `PL` means paged and level-aware.
 
 #### Pipelines / CI/CD
 
-| Noun                     | list | get | create | update | delete | execute |
-| ------------------------ | ---- | --- | ------ | ------ | ------ | ------- |
-| `pipeline`               | P    | Y   | Y      | Y      | ✓      | ✓       |
-| `pipeline_v1`            | ✓    | ✓   |        |        |        |         |
-| `pipeline_summary`       |      | ✓   |        |        |        |         |
-| `execution`              | P    | ✓   |        |        |        |         |
-| `execution_step`         | ✓    |     |        |        |        |         |
-| `execution_log`          | ✓    | ✓   |        |        |        |         |
-| `trigger`                | ✓    | ✓   |        |        |        |         |
-| `input_set`              | ✓    | ✓   |        |        |        |         |
-| `runtime_input_template` |      | ✓   |        |        |        |         |
-| `approval_instance`      | ✓    |     |        |        |        |         |
-| `template`               | ✓    | ✓   |        |        |        |         |
-| `freeze_window`          | ✓    | ✓   |        |        |        |         |
-| `global_freeze`          |      | ✓   |        |        |        |         |
+| Noun                      | list | get | create | update | delete | execute |
+| ------------------------- | ---- | --- | ------ | ------ | ------ | ------- |
+| `pipeline`                | P    | Y   | Y      | Y      | ✓      | ✓       |
+| `pipeline_with_input_set` |      |     |        |        |        | ✓       |
+| `pipeline_v1`             | ✓    | ✓   |        |        |        |         |
+| `pipeline_summary`        |      | ✓   |        |        |        |         |
+| `execution`               | P    | ✓   |        |        |        |         |
+| `execution_step`          | ✓    |     |        |        |        |         |
+| `execution_log`           | ✓    | ✓   |        |        |        |         |
+| `trigger`                 | ✓    | ✓   |        |        |        |         |
+| `input_set`               | ✓    | ✓   |        |        |        |         |
+| `runtime_input_template`  |      | ✓   |        |        |        |         |
+| `approval_instance`       | ✓    |     |        |        |        |         |
+| `template`                | ✓    | ✓   |        |        |        |         |
+| `freeze_window`           | ✓    | ✓   |        |        |        |         |
+| `global_freeze`           |      | ✓   |        |        |        |         |
+
+#### IaCM
+
+| Noun        | list | execute |
+| ----------- | ---- | ------- |
+| `workspace` | P    | ✓       |
 
 #### Artifact Registry
 
@@ -207,6 +231,7 @@ harness list pipeline --format json
 harness list pipeline --format jsonl     # one JSON object per line
 harness list pipeline --format csv
 harness list pipeline --format tsv
+harness list pipeline --format markdown
 
 # get/other commands
 harness get pipeline my-pipeline --format json

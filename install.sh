@@ -2,11 +2,11 @@
 set -eu
 
 REPO="sawka-harness/unified-cli"
-BINARY_NAME="harness"
 INSTALL_DIR="${HARNESS_INSTALL_DIR:-$HOME/.local/bin}"
 USER_OVERRIDE="${HARNESS_INSTALL_DIR:+yes}"
 NONINTERACTIVE="${HARNESS_NONINTERACTIVE:-}"
 NO_VERIFY="${HARNESS_NO_VERIFY:-}"
+CORE_ONLY="${HARNESS_CORE_ONLY:-}"
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -36,8 +36,9 @@ confirm() {
 parse_args() {
     while [ $# -gt 0 ]; do
         case "$1" in
-            --non-interactive) NONINTERACTIVE=1    ; shift ;;
-            --no-verify)       NO_VERIFY=1         ; shift ;;
+            --non-interactive) NONINTERACTIVE=1                      ; shift ;;
+            --no-verify)       NO_VERIFY=1                           ; shift ;;
+            --core)            CORE_ONLY=1                           ; shift ;;
             --install-dir)     INSTALL_DIR="$2" ; USER_OVERRIDE=yes ; shift 2 ;;
             --install-dir=*)   INSTALL_DIR="${1#*=}" ; USER_OVERRIDE=yes ; shift ;;
             *) error "Unknown option: $1" ;;
@@ -94,19 +95,29 @@ sha256_file() {
     fi
 }
 
-download_binary() {
+download_and_install() {
     local version="$1"
     local platform="$2"
     local dest="$3"
     local ver="${version#v}"
-    local base="${BINARY_NAME}_${ver}_${platform}"
-    local url="https://github.com/${REPO}/releases/download/${version}/${base}.tar.gz"
-    local checksum_url="https://github.com/${REPO}/releases/download/${version}/${BINARY_NAME}_${ver}_checksums.txt"
+    local pkg_name
+    local binaries
+
+    if [ -n "$CORE_ONLY" ]; then
+        pkg_name="harness-core_${ver}_${platform}"
+        binaries="harness"
+    else
+        pkg_name="harness-bundle_${ver}_${platform}"
+        binaries="harness harness-har"
+    fi
+
+    local url="https://github.com/${REPO}/releases/download/${version}/${pkg_name}.tar.gz"
+    local checksum_url="https://github.com/${REPO}/releases/download/${version}/harness_${ver}_checksums.txt"
     local tmp
     tmp="$(mktemp -d)"
     [ -z "$tmp" ] && error "Failed to create temporary directory"
 
-    info "Downloading $BINARY_NAME $version ($platform)..."
+    info "Downloading ${pkg_name} $version ($platform)..."
     curl -fsSL "$url" -o "$tmp/harness.tar.gz"
 
     if [ -n "$NO_VERIFY" ]; then
@@ -115,15 +126,18 @@ download_binary() {
         info "Verifying checksum..."
         curl -fsSL "$checksum_url" -o "$tmp/checksums.txt"
         local expected actual
-        expected="$(grep "${base}.tar.gz" "$tmp/checksums.txt" | cut -d' ' -f1)"
-        [ -z "$expected" ] && error "Checksum entry not found for ${base}.tar.gz"
+        expected="$(grep "${pkg_name}.tar.gz" "$tmp/checksums.txt" | cut -d' ' -f1)"
+        [ -z "$expected" ] && error "Checksum entry not found for ${pkg_name}.tar.gz"
         actual="$(sha256_file "$tmp/harness.tar.gz")"
         [ "$actual" = "$expected" ] || error "Checksum mismatch — download may be corrupted"
     fi
 
     tar -xzf "$tmp/harness.tar.gz" -C "$tmp"
-    mv "$tmp/$BINARY_NAME" "$dest/$BINARY_NAME"
-    chmod +x "$dest/$BINARY_NAME"
+    for bin in $binaries; do
+        mv "$tmp/$bin" "$dest/$bin"
+        chmod +x "$dest/$bin"
+        success "Installed $bin $version to $dest/$bin"
+    done
     rm -rf "$tmp"
 }
 
@@ -172,9 +186,8 @@ main() {
     mkdir -p "$INSTALL_DIR"
     [ -d "$INSTALL_DIR" ] || error "$INSTALL_DIR is not a directory"
 
-    # install binary
-    download_binary "$version" "$platform" "$INSTALL_DIR"
-    success "Installed $BINARY_NAME $version to $INSTALL_DIR/$BINARY_NAME"
+    # install binaries
+    download_and_install "$version" "$platform" "$INSTALL_DIR"
 
     local patched_rc=""
 
